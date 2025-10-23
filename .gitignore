@@ -1,0 +1,20 @@
+# IDE directories
+.vscode/
+.idea/
+
+# log files
+*.log
+
+# environment files
+*.properties
+
+# Build directories
+target/
+*.class
+*.jar
+*.war
+.DS_Store
+
+# input/output files
+*.csv
+*.txt
