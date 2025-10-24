@@ -1,26 +1,53 @@
 package ar.edu.itba.pod.server;
 
-import io.grpc.ServerBuilder;
+import java.util.Collections;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.GroupConfig;
+import com.hazelcast.config.InterfacesConfig;
+import com.hazelcast.config.JoinConfig;
+import com.hazelcast.config.MulticastConfig;
+import com.hazelcast.config.NetworkConfig;
+import com.hazelcast.core.Hazelcast;
 
 public class Server {
-    private static Logger logger = LoggerFactory.getLogger(Server.class);
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
+
+    public static void main(String[] args) {
         logger.info(" Server Starting ...");
 
-        int port = 50051;
-        io.grpc.Server server = ServerBuilder.forPort(port)
-                .build();
-        server.start();
-        logger.info("Server started, listening on " + port);
-        server.awaitTermination();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.info("Shutting down gRPC server since JVM is shutting down");
-            server.shutdown();
-            logger.info("Server shut down");
-        }));
-    }}
+        // Config
+        Config config = new Config();
+
+        // Group Config
+        GroupConfig groupConfig = new GroupConfig().setName("g2-client").setPassword("g2-client-pass");
+        config.setGroupConfig(groupConfig);
+
+        // Network Config
+        MulticastConfig multicastConfig = new MulticastConfig();
+
+        JoinConfig joinConfig = new JoinConfig().setMulticastConfig(multicastConfig);
+
+        InterfacesConfig interfacesConfig = new InterfacesConfig()
+                .setInterfaces(Collections.singletonList("127.0.0.*")).setEnabled(true);
+
+        NetworkConfig networkConfig = new NetworkConfig().setInterfaces(interfacesConfig).setJoin(joinConfig);
+
+        config.setNetworkConfig(networkConfig);
+
+        // Opcional: Logger detallado
+//        java.util.logging.Logger rootLogger = LogManager.getLogManager().getLogger("");
+//        rootLogger.setLevel(Level.FINE);
+//        for (Handler h : rootLogger.getHandlers()) {
+//            h.setLevel(Level.FINE);
+//        }
+
+        // Start cluster
+        Hazelcast.newHazelcastInstance(config);
+    }
+
+}
