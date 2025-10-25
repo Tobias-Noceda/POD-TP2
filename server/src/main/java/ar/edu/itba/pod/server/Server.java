@@ -24,7 +24,7 @@ public class Server {
         Config config = new Config();
 
         // Group Config
-        GroupConfig groupConfig = new GroupConfig().setName("g2-client").setPassword("g2-client-pass");
+        GroupConfig groupConfig = new GroupConfig().setName("g2").setPassword("g2-pass");
         config.setGroupConfig(groupConfig);
 
         // Network Config
@@ -39,14 +39,6 @@ public class Server {
 
         config.setNetworkConfig(networkConfig);
 
-        // Opcional: Logger detallado
-//        java.util.logging.Logger rootLogger = LogManager.getLogManager().getLogger("");
-//        rootLogger.setLevel(Level.FINE);
-//        for (Handler h : rootLogger.getHandlers()) {
-//            h.setLevel(Level.FINE);
-//        }
-
-        // Start cluster
         Hazelcast.newHazelcastInstance(config);
     }
 
