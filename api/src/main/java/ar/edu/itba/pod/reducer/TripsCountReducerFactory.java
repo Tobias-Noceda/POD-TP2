@@ -5,11 +5,11 @@ import com.hazelcast.mapreduce.ReducerFactory;
 
 import ar.edu.itba.pod.data.Pair;
 
-public class TripsCountReducerFactory implements ReducerFactory<Pair<Long, Long>, Long, Long> {
+public class TripsCountReducerFactory implements ReducerFactory<Pair<String, String>, Long, Long> {
 
     
     @Override
-    public Reducer<Long, Long> newReducer(Pair<Long, Long> key) {
+    public Reducer<Long, Long> newReducer(Pair<String, String> key) {
         return new TripsCountReducer();
     }
 
