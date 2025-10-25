@@ -8,6 +8,6 @@ public class DistinctZonesPredicate implements KeyPredicate<Pair<Long, Long>> {
     
     @Override
     public boolean evaluate(Pair<Long, Long> key) {
-        return !key.getLeft().equals(key.getRight());
+        return !key.getLeft().equals(key.getRight());//TODO check zone in zones.csv
     }
 }

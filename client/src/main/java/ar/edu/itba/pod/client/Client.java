@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
@@ -20,6 +19,7 @@ import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ICompletableFuture;
+import com.hazelcast.core.IMap;
 import com.hazelcast.core.MultiMap;
 import com.hazelcast.mapreduce.Job;
 import com.hazelcast.mapreduce.JobTracker;
@@ -28,6 +28,7 @@ import com.hazelcast.mapreduce.KeyValueSource;
 import ar.edu.itba.pod.collator.TripCollator;
 import ar.edu.itba.pod.data.Pair;
 import ar.edu.itba.pod.data.TripsRow;
+import ar.edu.itba.pod.data.ZonesRow;
 import ar.edu.itba.pod.keyPredicate.DistinctZonesPredicate;
 import ar.edu.itba.pod.mapper.TripsTokenizerMapper;
 import ar.edu.itba.pod.reducer.TripsCountReducerFactory;
@@ -53,14 +54,27 @@ public class Client {
             // Node Client
             HazelcastInstance hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
 
-            // Key Value Source
+            // Zones Key Value Source
+            IMap<Long, ZonesRow> zonesMap = hazelcastInstance.getMap("zones");
+            // Zones File Reading and Key Value Source Loading
+            try (Stream<String> lines = Files.lines(Paths.get(args[0]), StandardCharsets.UTF_8)) {
+                lines.skip(1)
+                        .map(line -> line.split(";"))
+                        .map(line -> new ZonesRow(
+                            Long.parseLong(line[0]),
+                            line[1],
+                            line[2]))
+                        .forEach(zone -> zonesMap.put(zone.getLocationID(), zone));
+            }
+
+            // Trips Key Value Source
             MultiMap<Pair<Long, Long>, TripsRow> tripsMultiMap = hazelcastInstance.getMultiMap("trips");
             KeyValueSource<Pair<Long, Long>, TripsRow> tripsKeyValueSource = KeyValueSource.fromMultiMap(tripsMultiMap);
 
             // Job Tracker
             JobTracker jobTracker = hazelcastInstance.getJobTracker("trips");
 
-            // Text File Reading and Key Value Source Loading
+            // Trips File Reading and Key Value Source Loading
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             try (Stream<String> lines = Files.lines(Paths.get(args[2]), StandardCharsets.UTF_8)) {
                 lines.skip(1)
@@ -79,22 +93,17 @@ public class Client {
 
             // MapReduce Job
             Job<Pair<Long, Long>, TripsRow> job = jobTracker.newJob(tripsKeyValueSource);
-            ICompletableFuture<List<Map.Entry<Pair<Long, Long>, Long>>> future = job
+            ICompletableFuture<List<String>> future = job
                     .keyPredicate(new DistinctZonesPredicate())
                     .mapper(new TripsTokenizerMapper())
                     .reducer(new TripsCountReducerFactory())
                     .submit(new TripCollator());
 
             // Wait and retrieve the result
-            List<Map.Entry<Pair<Long, Long>, Long>> result = future.get();
+            List<String> result = future.get();
 
             // Print results
-            result.forEach(e -> 
-                System.out.printf("%d;%d;%d\n",
-                    e.getKey().getLeft(),
-                    e.getKey().getRight(),
-                    e.getValue())
-            );
+            result.forEach(System.out::println);
         } finally {
             HazelcastClient.shutdownAll();
         }
