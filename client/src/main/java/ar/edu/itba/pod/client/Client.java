@@ -3,7 +3,9 @@ package ar.edu.itba.pod.client;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -76,7 +78,7 @@ public class Client {
 
             // Trips File Reading and Key Value Source Loading
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            try (Stream<String> lines = Files.lines(Paths.get(args[2]), StandardCharsets.UTF_8)) {
+            try (Stream<String> lines = Files.lines(Paths.get(args[1]), StandardCharsets.UTF_8)) {
                 lines.skip(1)
                         .map(line -> line.split(";"))
                         .map(line -> new TripsRow(
@@ -103,7 +105,12 @@ public class Client {
             List<String> result = future.get();
 
             // Print results
-            result.forEach(System.out::println);
+            //result.forEach(System.out::println);
+            System.out.println("Writing...\n");
+            Path outputPath = Paths.get("resultado.csv");
+            Files.write(outputPath, List.of("pickUpZone;dropOffZone;trips"), StandardCharsets.UTF_8);
+            Files.write(outputPath, result, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            System.out.println("Finished!\n");
         } finally {
             HazelcastClient.shutdownAll();
         }
