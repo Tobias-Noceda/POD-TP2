@@ -10,7 +10,7 @@ import ar.edu.itba.pod.data.Pair;
 import ar.edu.itba.pod.data.TripsRow;
 import ar.edu.itba.pod.data.ZonesRow;
 
-public class TripsTokenizerMapper implements Mapper<Pair<Long, Long>, TripsRow, Pair<String, String>, Long>, HazelcastInstanceAware {
+public class TripsCountMapper implements Mapper<Pair<Long, Long>, TripsRow, Pair<String, String>, Long>, HazelcastInstanceAware {
     private transient IMap<Long, ZonesRow> zonesMap;
 
     private static final Long ONE = 1L;

@@ -10,7 +10,7 @@ import com.hazelcast.mapreduce.Collator;
 
 import ar.edu.itba.pod.data.Pair;
 
-public class TripCollator implements Collator<Map.Entry<Pair<String, String>, Long>, List<String>> {
+public class TripsCountCollator implements Collator<Map.Entry<Pair<String, String>, Long>, List<String>> {
     @Override
     public List<String> collate(Iterable<Map.Entry<Pair<String, String>, Long>> values) {
         return StreamSupport.stream(values.spliterator(), false)

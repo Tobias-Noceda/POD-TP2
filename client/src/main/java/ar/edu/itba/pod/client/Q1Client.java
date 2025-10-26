@@ -27,20 +27,20 @@ import com.hazelcast.mapreduce.Job;
 import com.hazelcast.mapreduce.JobTracker;
 import com.hazelcast.mapreduce.KeyValueSource;
 
-import ar.edu.itba.pod.collator.TripCollator;
+import ar.edu.itba.pod.collator.TripsCountCollator;
 import ar.edu.itba.pod.data.Pair;
 import ar.edu.itba.pod.data.TripsRow;
 import ar.edu.itba.pod.data.ZonesRow;
 import ar.edu.itba.pod.keyPredicate.DistinctZonesPredicate;
-import ar.edu.itba.pod.mapper.TripsTokenizerMapper;
+import ar.edu.itba.pod.mapper.TripsCountMapper;
 import ar.edu.itba.pod.reducer.TripsCountReducerFactory;
 
-public class Client {
+public class Q1Client {
 
-    private static final Logger logger = LoggerFactory.getLogger(Client.class);
+    private static final Logger logger = LoggerFactory.getLogger(Q1Client.class);
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
-        logger.info("POD-TP2 Client Starting ...");
+        logger.info("POD-TP2 Q1Client Starting ...");
 
         try {
             // Group Config
@@ -97,17 +97,16 @@ public class Client {
             Job<Pair<Long, Long>, TripsRow> job = jobTracker.newJob(tripsKeyValueSource);
             ICompletableFuture<List<String>> future = job
                     .keyPredicate(new DistinctZonesPredicate())
-                    .mapper(new TripsTokenizerMapper())
+                    .mapper(new TripsCountMapper())
                     .reducer(new TripsCountReducerFactory())
-                    .submit(new TripCollator());
+                    .submit(new TripsCountCollator());
 
             // Wait and retrieve the result
             List<String> result = future.get();
 
             // Print results
-            //result.forEach(System.out::println);
             System.out.println("Writing...\n");
-            Path outputPath = Paths.get("resultado.csv");
+            Path outputPath = Paths.get("Q1resultado.csv");
             Files.write(outputPath, List.of("pickUpZone;dropOffZone;trips"), StandardCharsets.UTF_8);
             Files.write(outputPath, result, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
             System.out.println("Finished!\n");
