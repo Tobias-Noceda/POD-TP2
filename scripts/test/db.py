@@ -4,12 +4,12 @@ import csv
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
 DATASET_PATH = os.path.join(BASE_DIR, 'POD-TP2', 'client', 'src', 'main', 'assembly', 'overlay')
+DB_PATH = os.path.join(BASE_DIR, 'POD-TP2', 'scripts', 'test', 'test.db')
 TRIPS_PATH = 'trips-2025-01.csv'
 ZONES_PATH = 'zones.csv'
 
-def init_db(db_path):
-    path = os.path.join(BASE_DIR, 'scripts', 'test', db_path)
-    conn = sqlite3.connect(path)
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     zones_table = """
@@ -37,8 +37,6 @@ def init_db(db_path):
 
     conn.commit()
     conn.close()
-
-    return path
 
     
 def populate(file, table, db_path):
@@ -74,7 +72,7 @@ def populate(file, table, db_path):
                     row['dropoff_datetime'].strip(),
                     row['PULocationID'].strip(),
                     row['DOLocationID'].strip(),
-                    row['trip_miles'].strip(),
+                    float(row['trip_miles'].strip()),
                     row['base_passenger_fare'].strip()
                 ))
 
