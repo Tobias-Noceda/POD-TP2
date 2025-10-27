@@ -18,3 +18,6 @@ target/
 # input/output files
 *.csv
 *.txt
+
+# database for testing
+*.db
