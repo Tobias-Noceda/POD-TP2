@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
+import ar.edu.itba.pod.client.lib.ParametersParser;
+import ar.edu.itba.pod.client.lib.ParsedParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +45,14 @@ public class Q5Client {
         logger.info("POD-TP2 Q5Client Starting ...");
 
         try {
+
+            // Parameters
+            ParsedParameters params = ParametersParser.parseConsoleParameters();
+
+            String address = params.address;
+            String inPath = params.inPath;
+            String outPath = params.outPath;
+
             // Group Config
             GroupConfig groupConfig = new GroupConfig().setName("g2").setPassword("g2-pass");
 
