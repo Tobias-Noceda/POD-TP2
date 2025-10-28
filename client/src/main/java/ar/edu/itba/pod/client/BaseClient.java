@@ -94,9 +94,12 @@ public abstract class BaseClient<K> {
         tripsKeyValueSource = KeyValueSource.fromMultiMap(tripsMultiMap);
     }
 
+    protected String getTripsMapName() {
+        return "trips";
+    }
+
     protected abstract K getTripKey(TripsRow trip);
     protected abstract TripsRow parseTripsRow(String[] fields);
-    protected abstract String getTripsMapName();
     protected abstract List<String> executeJob() throws ExecutionException, InterruptedException;
     protected abstract void writeResults(List<String> queryResults, List<String> timeResults, String outputPath) throws IOException;
 }

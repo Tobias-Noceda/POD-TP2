@@ -37,11 +37,6 @@ public class Query1Client extends BaseClient<Pair<Long, Long>> {
     }
 
     @Override
-    protected String getTripsMapName() {
-        return "trips";
-    }
-
-    @Override
     protected List<String> executeJob() throws ExecutionException, InterruptedException {
         Job<Pair<Long, Long>, TripsRow> job = jobTracker.newJob(tripsKeyValueSource);
         return job
