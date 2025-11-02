@@ -13,12 +13,17 @@ import com.hazelcast.config.MulticastConfig;
 import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.core.Hazelcast;
 
+import ar.edu.itba.pod.server.lib.ParametersParser;
+import ar.edu.itba.pod.server.lib.ParsedParameters;
+
 public class Server {
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
     public static void main(String[] args) {
         logger.info(" Server Starting ...");
+
+        ParsedParameters params = ParametersParser.parseConsoleParameters();
 
         // Config
         Config config = new Config();
@@ -32,8 +37,10 @@ public class Server {
 
         JoinConfig joinConfig = new JoinConfig().setMulticastConfig(multicastConfig);
 
+        System.out.println("Binding to address: " + params.address);
+
         InterfacesConfig interfacesConfig = new InterfacesConfig()
-                .setInterfaces(Collections.singletonList("127.0.0.*")).setEnabled(true);
+                .setInterfaces(Collections.singletonList(params.address)).setEnabled(true);
 
         NetworkConfig networkConfig = new NetworkConfig().setInterfaces(interfacesConfig).setJoin(joinConfig);
 
