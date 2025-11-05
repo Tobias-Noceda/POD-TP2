@@ -5,26 +5,30 @@ import com.hazelcast.mapreduce.ReducerFactory;
 
 import ar.edu.itba.pod.data.Pair;
 
-public class AverageFareReducerFactory implements ReducerFactory<Pair<String, String>, Double, Double> {
+@SuppressWarnings("deprecation")
+public class AverageFareReducerFactory implements ReducerFactory<Pair<String, String>, Pair<Double, Long>, Double> {
     
     @Override
-    public Reducer<Double, Double> newReducer(Pair<String, String> key) {
+    public Reducer<Pair<Double, Long>, Double> newReducer(Pair<String, String> key) {
         return new AverageFareReducer();
     }
 
-    private class AverageFareReducer extends Reducer<Double, Double> {
-        private Double sum = 0.0;
-        private Long trips = 0L;
+    private class AverageFareReducer extends Reducer<Pair<Double, Long>, Double> {
+        private double sum = 0.0;
+        private long trips = 0L;
 
         @Override
-        public void reduce(Double value) {
-            sum += value;
-            trips++;
+        public void reduce(Pair<Double, Long> value) {
+            sum += value.getLeft();
+            trips += value.getRight();
         }
 
         @Override
         public Double finalizeReduce() {
-            return sum/trips;
+            if (trips == 0L) {
+                return 0.0;
+            }
+            return sum / trips;
         }
     }
 }

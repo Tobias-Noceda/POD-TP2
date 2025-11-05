@@ -11,6 +11,7 @@ import com.hazelcast.mapreduce.JobCompletableFuture;
 import ar.edu.itba.pod.client.lib.ParametersParser;
 import ar.edu.itba.pod.client.lib.ParsedParameters;
 import ar.edu.itba.pod.collator.TripsCountCollator;
+import ar.edu.itba.pod.combiner.TripsCountCombinerFactory;
 import ar.edu.itba.pod.data.Pair;
 import ar.edu.itba.pod.data.TripsRow;
 import ar.edu.itba.pod.keyPredicate.DistinctZonesPredicate;
@@ -37,6 +38,7 @@ public class Query1Client extends Client<Pair<Long, Long>> {
                 Double.valueOf(f[6]), Double.valueOf(f[7]));
     }
 
+    @SuppressWarnings("deprecation")
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
         ParsedParameters params = ParametersParser.parseConsoleParameters();
 
@@ -44,11 +46,12 @@ public class Query1Client extends Client<Pair<Long, Long>> {
 
         client.start();
 
-        JobCompletableFuture<List<String>> job = client.getTripsJob()
-                .keyPredicate(new DistinctZonesPredicate())
-                .mapper(new TripsCountMapper())
-                .reducer(new TripsCountReducerFactory())
-                .submit(new TripsCountCollator());
+    JobCompletableFuture<List<String>> job = client.getTripsJob()
+        .keyPredicate(new DistinctZonesPredicate())
+        .mapper(new TripsCountMapper())
+        .combiner(new TripsCountCombinerFactory())
+        .reducer(new TripsCountReducerFactory())
+        .submit(new TripsCountCollator());
 
         client.executeJob(job, "pickUpZone;dropOffZone;tripsCount");
 

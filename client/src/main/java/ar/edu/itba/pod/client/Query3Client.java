@@ -11,6 +11,7 @@ import com.hazelcast.mapreduce.JobCompletableFuture;
 import ar.edu.itba.pod.client.lib.ParametersParser;
 import ar.edu.itba.pod.client.lib.ParsedParameters;
 import ar.edu.itba.pod.collator.AverageFareCollator;
+import ar.edu.itba.pod.combiner.AverageFareCombinerFactory;
 import ar.edu.itba.pod.data.Pair;
 import ar.edu.itba.pod.data.TripsRow;
 import ar.edu.itba.pod.mapper.AverageFareMapper;
@@ -43,16 +44,18 @@ public class Query3Client extends Client<Pair<Long, String>> {
         );
     }
 
+    @SuppressWarnings("deprecation")
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
         ParsedParameters params = ParametersParser.parseConsoleParameters();
         Query3Client client = new Query3Client(params);
 
         client.start();
 
-        JobCompletableFuture<List<String>> job = client.getTripsJob()
-                .mapper(new AverageFareMapper())
-                .reducer(new AverageFareReducerFactory())
-                .submit(new AverageFareCollator());
+    JobCompletableFuture<List<String>> job = client.getTripsJob()
+        .mapper(new AverageFareMapper())
+        .combiner(new AverageFareCombinerFactory())
+        .reducer(new AverageFareReducerFactory())
+        .submit(new AverageFareCollator());
 
         client.executeJob(job, "pickUpBorough;company;avgFare");
 

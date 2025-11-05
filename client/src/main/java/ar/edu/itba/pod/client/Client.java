@@ -135,6 +135,7 @@ public abstract class Client<K> {
     }
 
     private void loadZones(Path path, IMap<Long, ZonesRow> zonesMap) throws IOException {
+        // TODO: preguntar si puedo usar un CSVParser
         try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
             lines.skip(1)
                     .map(line -> line.split(";"))
@@ -144,6 +145,7 @@ public abstract class Client<K> {
     }
 
     private void loadTrips(Path path, MultiMap<K, TripsRow> tripsMultiMap) throws IOException {
+        // TODO: preguntar si puedo usar un CSVParser
         try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
             lines.skip(1)
                     .map(line -> line.split(";"))
