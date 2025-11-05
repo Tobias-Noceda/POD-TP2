@@ -166,6 +166,18 @@ public abstract class Client<K> {
         tripsKeyValueSource = KeyValueSource.fromMultiMap(tripsMultiMap);
     }
 
+    private void loadTripsParallel(Path path, MultiMap<K, TripsRow> tripsMultiMap) throws IOException {
+        // Parallel stream variant kept for benchmarking vs the threaded loader
+        try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
+            lines.skip(1)
+                    .parallel()
+                    .map(line -> line.split(";"))
+                    .map(this::parseTripsRow)
+                    .forEach(trip -> tripsMultiMap.put(getTripKey(trip), trip));
+        }
+        tripsKeyValueSource = KeyValueSource.fromMultiMap(tripsMultiMap);
+    }
+
     // Executor service my absolute beloved. Me salvaste sims y ahora compartimos POD. Nunca cambies. Espero olvidarme de sacar este comentario antes de entregar para que sepan cuanto cariño te tengo
     private void loadTripsThreaded(Path path, MultiMap<K, TripsRow> tripsMultiMap) throws IOException {
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
