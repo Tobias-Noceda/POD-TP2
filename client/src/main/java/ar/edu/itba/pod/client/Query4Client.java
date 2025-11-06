@@ -28,7 +28,7 @@ public class Query4Client extends Client<TripDelayRaw> {
 
     @Override
     public TripDelayRaw getTripKey(String[] fields) {
-        return new TripDelayRaw(Long.valueOf(fields[4]), Long.valueOf(fields[5]), Duration.between(LocalDateTime.parse(fields[1]), LocalDateTime.parse(fields[2])).getSeconds());
+        return new TripDelayRaw(Long.valueOf(fields[4]), Long.valueOf(fields[5]), Duration.between(LocalDateTime.parse(fields[1], DTF), LocalDateTime.parse(fields[2], DTF)).getSeconds());
     }
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {

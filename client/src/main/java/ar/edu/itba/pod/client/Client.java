@@ -41,7 +41,7 @@ import ar.edu.itba.pod.data.ZonesRow;
 public abstract class Client<K> {
 
     private final static String ZONES_FILE_NAME = "zones.csv";
-    private final static String TRIPS_FILE_NAME = "trips-2025-01.csv";
+    private final static String TRIPS_FILE_NAME = "trips-mid.csv";
     
     private final static String ZONES_MAP_NAME = "zones";
     private final static String TRIPS_MAP_NAME = "trips";

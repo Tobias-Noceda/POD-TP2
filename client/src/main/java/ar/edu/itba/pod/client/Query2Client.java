@@ -29,8 +29,8 @@ public class Query2Client extends Client<Pair<Long, LongestTripDataRaw>> {
         return new Pair<>(
             Long.valueOf(fields[4]),
             new LongestTripDataRaw(
+                Long.valueOf(fields[4]),
                 Long.valueOf(fields[5]),
-                Long.valueOf(fields[6]),
                 LocalDateTime.parse(fields[1], DTF),
                 Double.valueOf(fields[6]),
                 fields[0]
