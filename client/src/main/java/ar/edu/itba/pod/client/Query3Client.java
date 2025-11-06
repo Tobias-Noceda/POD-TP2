@@ -13,11 +13,12 @@ import ar.edu.itba.pod.client.lib.ParsedParameters;
 import ar.edu.itba.pod.collator.AverageFareCollator;
 import ar.edu.itba.pod.combiner.AverageFareCombinerFactory;
 import ar.edu.itba.pod.data.Pair;
+import ar.edu.itba.pod.data.TripFareData;
 import ar.edu.itba.pod.data.TripsRow;
 import ar.edu.itba.pod.mapper.AverageFareMapper;
 import ar.edu.itba.pod.reducer.AverageFareReducerFactory;
 
-public class Query3Client extends Client<Pair<Long, String>> {
+public class Query3Client extends Client<TripFareData> {
 
     private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -26,21 +27,12 @@ public class Query3Client extends Client<Pair<Long, String>> {
     }
 
     @Override
-    public Pair<Long, String> getTripKey(TripsRow trip) {
-        return new Pair<>(trip.getPickupLocationID(), trip.getCompany());
-    }
-
-    @Override
-    public TripsRow parseTripsRow(String[] fields) {
-        return new TripsRow(
-                fields[0],
-                LocalDateTime.parse(fields[1], DTF),
-                LocalDateTime.parse(fields[2], DTF),
-                LocalDateTime.parse(fields[3], DTF),
+    public TripFareData getTripKey(String[] fields) {
+        return new TripFareData(
                 Long.valueOf(fields[4]),
                 Long.valueOf(fields[5]),
-                Double.valueOf(fields[6]),
-                Double.valueOf(fields[7])
+                Double.valueOf(fields[7]),
+                fields[0]
         );
     }
 
