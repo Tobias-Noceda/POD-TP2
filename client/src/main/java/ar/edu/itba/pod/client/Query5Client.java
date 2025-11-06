@@ -15,10 +15,11 @@ import ar.edu.itba.pod.collator.CompanyYTDCollator;
 import ar.edu.itba.pod.combiner.CompanyYTDCombinerFactory;
 import ar.edu.itba.pod.data.Pair;
 import ar.edu.itba.pod.data.TripsRow;
+import ar.edu.itba.pod.data.YTDDataRaw;
 import ar.edu.itba.pod.mapper.CompanyYTDMapper;
 import ar.edu.itba.pod.reducer.CompanyYTDReducerFactory;
 
-public class Query5Client extends Client<Pair<String, YearMonth>> {
+public class Query5Client extends Client<YTDDataRaw> {
 
     private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -27,23 +28,14 @@ public class Query5Client extends Client<Pair<String, YearMonth>> {
     }
 
     @Override
-    public Pair<String, YearMonth> getTripKey(TripsRow trip) {
-        return new Pair<>(trip.getCompany(),
-                YearMonth.of(trip.getRequestDateTime().getYear(),
-                        trip.getRequestDateTime().getMonth()));
-    }
-
-    @Override
-    public TripsRow parseTripsRow(String[] fields) {
-        return new TripsRow(
+    public YTDDataRaw getTripKey(String[] fields) {
+        return new YTDDataRaw(
                 fields[0],
-                LocalDateTime.parse(fields[1], DTF),
-                LocalDateTime.parse(fields[2], DTF),
-                LocalDateTime.parse(fields[3], DTF),
-                Long.valueOf(fields[4]),
-                Long.valueOf(fields[5]),
-                Double.valueOf(fields[6]),
-                Double.valueOf(fields[7])
+                YearMonth.of(
+                        LocalDateTime.parse(fields[1], DTF).getYear(),
+                        LocalDateTime.parse(fields[1], DTF).getMonthValue()
+                ),
+                Double.parseDouble(fields[6])
         );
     }
 
@@ -56,7 +48,7 @@ public class Query5Client extends Client<Pair<String, YearMonth>> {
 
         JobCompletableFuture<List<String>> job = client.getTripsJob()
                 .mapper(new CompanyYTDMapper())
-                .combiner(new CompanyYTDCombinerFactory())
+                // .combiner(new CompanyYTDCombinerFactory())
                 .reducer(new CompanyYTDReducerFactory())
                 .submit(new CompanyYTDCollator());
 

@@ -7,14 +7,15 @@ import com.hazelcast.mapreduce.Mapper;
 
 import ar.edu.itba.pod.data.Pair;
 import ar.edu.itba.pod.data.TripsRow;
+import ar.edu.itba.pod.data.YTDDataRaw;
 
-public class CompanyYTDMapper implements Mapper<Pair<String, YearMonth>, TripsRow, Pair<String, YearMonth>, Double> {
+public class CompanyYTDMapper implements Mapper<Long, YTDDataRaw, Pair<String, YearMonth>, Double> {
 
     @Override
-    public void map(Pair<String, YearMonth> key, TripsRow row, Context<Pair<String, YearMonth>, Double> context) {
+    public void map(Long key, YTDDataRaw row, Context<Pair<String, YearMonth>, Double> context) {
         YearMonth ym = YearMonth.of(
-            row.getRequestDateTime().getYear(),
-            row.getRequestDateTime().getMonth()
+            row.getYearMonth().getYear(),
+            row.getYearMonth().getMonthValue()
         );
         context.emit(new Pair<>(row.getCompany(), ym), row.getMiles());
     }

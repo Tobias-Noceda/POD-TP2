@@ -25,12 +25,7 @@ public class Query1Client extends Client<Pair<Long, Long>> {
 
     @Override
     public Pair<Long, Long> getTripKey(String[] fields) {
-        final Long pickupId = Long.valueOf(fields[4]);
-        final Long dropoffId = Long.valueOf(fields[5]);
-        if (!pickupId.equals(dropoffId)) {
-            return new Pair<>(pickupId, dropoffId);
-        }
-        return null;
+        return new Pair<>(Long.valueOf(fields[4]), Long.valueOf(fields[5]));
     }
 
     @SuppressWarnings("deprecation")

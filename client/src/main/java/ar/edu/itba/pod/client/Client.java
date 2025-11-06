@@ -246,10 +246,7 @@ public abstract class Client<K> {
 
     private void processTripsBatch(List<Pair<Long, String>> batch, MultiMap<Long, K> tripsMultiMap) {
         for (Pair<Long, String> pair : batch) {
-            K key = getTripKey(pair.getRight().split(";"));
-            if (key != null) {
-                tripsMultiMap.put(pair.getLeft(), key);
-            }
+            tripsMultiMap.put(pair.getLeft(), getTripKey(pair.getRight().split(";")));
         }
         System.out.println("Sent batch");
     }
