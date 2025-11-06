@@ -88,6 +88,9 @@ public abstract class Client<K> {
         IMap<Long, ZonesRow> zonesMap = hazelcastInstance.getMap(ZONES_MAP_NAME);
         MultiMap<Long, K> tripsMultiMap = hazelcastInstance.getMultiMap(TRIPS_MAP_NAME);
 
+        zonesMap.clear();
+        tripsMultiMap.clear();
+
         logWriter.println("%s INFO [main] %s - Inicio de la lectura del archivo".formatted(dtf.format(LocalDateTime.now()), this.getClass().getSimpleName()));
 
         // Open folder inPath and load zonesFileName and tripsFileName
