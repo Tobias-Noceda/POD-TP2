@@ -162,7 +162,12 @@ public abstract class Client<K> {
         try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
             AtomicLong lineCount = new AtomicLong(0);
             lines.skip(1)
-                    .forEach(trip -> tripsMultiMap.put(lineCount.getAndIncrement(), getTripKey(trip.split(";"))));
+                    .forEach(trip -> {
+                        K key = getTripKey(trip.split(";"));
+                        if (key != null) {
+                            tripsMultiMap.put(lineCount.getAndIncrement(), key);
+                        }
+                    });
         }
         tripsKeyValueSource = KeyValueSource.fromMultiMap(tripsMultiMap);
     }
@@ -174,7 +179,12 @@ public abstract class Client<K> {
             lines.skip(1)
                     .parallel()
                     .map(line -> line.split(";"))
-                    .forEach(trip -> tripsMultiMap.put(lineCount.getAndIncrement(), getTripKey(trip)));
+                    .forEach(trip -> {
+                        K key = getTripKey(trip);
+                        if (key != null) {
+                            tripsMultiMap.put(lineCount.getAndIncrement(), key);
+                        }
+                    });
         }
         tripsKeyValueSource = KeyValueSource.fromMultiMap(tripsMultiMap);
     }
@@ -236,7 +246,10 @@ public abstract class Client<K> {
 
     private void processTripsBatch(List<Pair<Long, String>> batch, MultiMap<Long, K> tripsMultiMap) {
         for (Pair<Long, String> pair : batch) {
-            tripsMultiMap.put(pair.getLeft(), getTripKey(pair.getRight().split(";")));
+            K key = getTripKey(pair.getRight().split(";"));
+            if (key != null) {
+                tripsMultiMap.put(pair.getLeft(), key);
+            }
         }
         System.out.println("Sent batch");
     }
