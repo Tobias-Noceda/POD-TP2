@@ -25,3 +25,7 @@ target/
 /venv/
 /scripts/
 *.sql
+
+.project
+.classpath
+.settings/
