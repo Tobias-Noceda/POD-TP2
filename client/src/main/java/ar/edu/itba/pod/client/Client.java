@@ -10,15 +10,13 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -36,7 +34,7 @@ import com.hazelcast.mapreduce.JobCompletableFuture;
 import com.hazelcast.mapreduce.KeyValueSource;
 
 import ar.edu.itba.pod.client.lib.ParsedParameters;
-import ar.edu.itba.pod.data.TripsRow;
+import ar.edu.itba.pod.data.Pair;
 import ar.edu.itba.pod.data.ZonesRow;
 
 @SuppressWarnings("deprecation")
@@ -58,7 +56,7 @@ public abstract class Client<K> {
     private final int queryNumber;
 
     private HazelcastInstance hazelcastInstance;
-    private KeyValueSource<K, TripsRow> tripsKeyValueSource;
+    private KeyValueSource<Long, K> tripsKeyValueSource;
 
     private PrintWriter logWriter;
 
@@ -88,13 +86,13 @@ public abstract class Client<K> {
 
         // Load zones and trips
         IMap<Long, ZonesRow> zonesMap = hazelcastInstance.getMap(ZONES_MAP_NAME);
-        MultiMap<K, TripsRow> tripsMultiMap = hazelcastInstance.getMultiMap(TRIPS_MAP_NAME);
+        MultiMap<Long, K> tripsMultiMap = hazelcastInstance.getMultiMap(TRIPS_MAP_NAME);
 
         logWriter.println("%s INFO [main] %s - Inicio de la lectura del archivo".formatted(dtf.format(LocalDateTime.now()), this.getClass().getSimpleName()));
 
         // Open folder inPath and load zonesFileName and tripsFileName
         loadZones(Paths.get(args.inPath, ZONES_FILE_NAME), zonesMap);
-        loadTrips(Paths.get(args.inPath, TRIPS_FILE_NAME), tripsMultiMap);
+        loadTripsThreaded(Paths.get(args.inPath, TRIPS_FILE_NAME), tripsMultiMap);
 
         logWriter.println("%s INFO [main] %s - Fin de lectura del archivo".formatted(dtf.format(LocalDateTime.now()), this.getClass().getSimpleName()));
     }
@@ -138,7 +136,7 @@ public abstract class Client<K> {
         HazelcastClient.shutdownAll();
     }
 
-    public Job<K, TripsRow> getTripsJob() {
+    public Job<Long, K> getTripsJob() {
         if (tripsKeyValueSource == null) {
             throw new IllegalStateException("Trips data not loaded");
         }
@@ -146,40 +144,43 @@ public abstract class Client<K> {
     }
 
     private void loadZones(Path path, IMap<Long, ZonesRow> zonesMap) throws IOException {
-        // TODO: preguntar si puedo usar un CSVParser
         try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
-            lines.skip(1)
+            lines.skip(1) // Skip header
                     .map(line -> line.split(";"))
-                    .map(line -> new ZonesRow(Long.valueOf(line[0]), line[1], line[2]))
-                    .forEach(zone -> zonesMap.put(zone.getLocationID(), zone));
+                    .filter(fields -> fields.length >= 3)
+                    .forEach(fields -> {
+                        Long locationID = Long.valueOf(fields[0]);
+                        String neighbourhood = fields[1];
+                        String zone = fields[2];
+                        zonesMap.put(locationID, new ZonesRow(locationID, neighbourhood, zone));
+                    });
         }
     }
 
-    private void loadTrips(Path path, MultiMap<K, TripsRow> tripsMultiMap) throws IOException {
+    private void loadTrips(Path path, MultiMap<Long, K> tripsMultiMap) throws IOException {
         // TODO: preguntar si puedo usar un CSVParser
         try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
+            AtomicLong lineCount = new AtomicLong(0);
             lines.skip(1)
-                    .map(line -> line.split(";"))
-                    .map(this::parseTripsRow)
-                    .forEach(trip -> tripsMultiMap.put(getTripKey(trip), trip));
+                    .forEach(trip -> tripsMultiMap.put(lineCount.getAndIncrement(), getTripKey(trip.split(";"))));
         }
         tripsKeyValueSource = KeyValueSource.fromMultiMap(tripsMultiMap);
     }
 
-    private void loadTripsParallel(Path path, MultiMap<K, TripsRow> tripsMultiMap) throws IOException {
+    private void loadTripsParallel(Path path, MultiMap<Long, K> tripsMultiMap) throws IOException {
         // Parallel stream variant kept for benchmarking vs the threaded loader
         try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
+            AtomicLong lineCount = new AtomicLong(0);
             lines.skip(1)
                     .parallel()
                     .map(line -> line.split(";"))
-                    .map(this::parseTripsRow)
-                    .forEach(trip -> tripsMultiMap.put(getTripKey(trip), trip));
+                    .forEach(trip -> tripsMultiMap.put(lineCount.getAndIncrement(), getTripKey(trip)));
         }
         tripsKeyValueSource = KeyValueSource.fromMultiMap(tripsMultiMap);
     }
 
-    // Executor service my absolute beloved. Me salvaste sims y ahora compartimos POD. Nunca cambies. Espero olvidarme de sacar este comentario antes de entregar para que sepan cuanto cariño te tengo
-    private void loadTripsThreaded(Path path, MultiMap<K, TripsRow> tripsMultiMap) throws IOException {
+        // Executor service my absolute beloved. Me salvaste sims y ahora compartimos POD. Nunca cambies. Espero olvidarme de sacar este comentario antes de entregar para que sepan cuanto cariño te tengo
+    private void loadTripsThreaded(Path path, MultiMap<Long, K> tripsMultiMap) throws IOException {
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>();
 
@@ -188,10 +189,11 @@ public abstract class Client<K> {
             // Sacamos el header
             reader.readLine();
 
-            List<String> batch = new ArrayList<>(TRIPS_BATCH_SIZE);
+            List<Pair<Long, String>> batch = new ArrayList<>(TRIPS_BATCH_SIZE);
             String line;
+            Long lineNumber = 0L;
             while ((line = reader.readLine()) != null) {
-                batch.add(line);
+                batch.add(new Pair<>(lineNumber++, line));
                 if (batch.size() >= TRIPS_BATCH_SIZE) {
                     futures.add(submitTripsBatch(new ArrayList<>(batch), tripsMultiMap, executor));
                     batch.clear();
@@ -228,25 +230,16 @@ public abstract class Client<K> {
         tripsKeyValueSource = KeyValueSource.fromMultiMap(tripsMultiMap);
     }
 
-    private Future<?> submitTripsBatch(List<String> batch, MultiMap<K, TripsRow> tripsMultiMap, ExecutorService executor) {
+    private Future<?> submitTripsBatch(List<Pair<Long, String>> batch, MultiMap<Long, K> tripsMultiMap, ExecutorService executor) {
         return executor.submit(() -> processTripsBatch(batch, tripsMultiMap));
     }
 
-    private void processTripsBatch(List<String> batch, MultiMap<K, TripsRow> tripsMultiMap) {
-        Map<K, Collection<TripsRow>> groupedTrips = new HashMap<>();
-        for (String line : batch) {
-            String[] fields = line.split(";", -1);
-            TripsRow trip = parseTripsRow(fields);
-            groupedTrips.computeIfAbsent(getTripKey(trip), key -> new ArrayList<>()).add(trip);
+    private void processTripsBatch(List<Pair<Long, String>> batch, MultiMap<Long, K> tripsMultiMap) {
+        for (Pair<Long, String> pair : batch) {
+            tripsMultiMap.put(pair.getLeft(), getTripKey(pair.getRight().split(";")));
         }
-
-        for (Map.Entry<K, Collection<TripsRow>> entry : groupedTrips.entrySet()) {
-            for (TripsRow trip : entry.getValue()) {
-                tripsMultiMap.put(entry.getKey(), trip);
-            }
-        }
+        System.out.println("Sent batch");
     }
 
-    public abstract K getTripKey(TripsRow trip);
-    public abstract TripsRow parseTripsRow(String[] fields);
+    public abstract K getTripKey(String[] fields);
 }

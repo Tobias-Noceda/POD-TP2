@@ -12,10 +12,10 @@ import com.hazelcast.mapreduce.Collator;
 
 import ar.edu.itba.pod.data.Pair;
 
-public class LongestDelayCollator implements Collator<Map.Entry<String, Pair<String, Double>>, List<String>> {
+public class LongestDelayCollator implements Collator<Map.Entry<String, Pair<String, Long>>, List<String>> {
 
     @Override
-    public List<String> collate(Iterable<Map.Entry<String, Pair<String, Double>>> values) {
+    public List<String> collate(Iterable<Map.Entry<String, Pair<String, Long>>> values) {
 
         DecimalFormat df = new DecimalFormat("#.##");
         df.setRoundingMode(RoundingMode.DOWN);
@@ -23,14 +23,14 @@ public class LongestDelayCollator implements Collator<Map.Entry<String, Pair<Str
         return StreamSupport.stream(values.spliterator(), false)
         .sorted(
             Comparator
-                .<Map.Entry<String, Pair<String, Double>>, String>comparing(Map.Entry::getKey)
+                .<Map.Entry<String, Pair<String, Long>>, String>comparing(Map.Entry::getKey)
             )
         .map(e -> {
-            Pair<String, Double> v = e.getValue();
+            Pair<String, Long> v = e.getValue();
                 return String.format("%s;%s;%s",
-                e.getKey(),                        
-                v.getLeft(),                           
-                df.format(v.getRight()))
+                e.getKey(),
+                v.getLeft(),
+                v.getRight())
         ;})
         .collect(Collectors.toList());
     }

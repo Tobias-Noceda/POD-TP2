@@ -11,11 +11,12 @@ import com.hazelcast.mapreduce.JobCompletableFuture;
 import ar.edu.itba.pod.client.lib.ParametersParser;
 import ar.edu.itba.pod.client.lib.ParsedParameters;
 import ar.edu.itba.pod.collator.LongestTripCollator;
-import ar.edu.itba.pod.data.TripsRow;
+import ar.edu.itba.pod.data.LongestTripDataRaw;
+import ar.edu.itba.pod.data.Pair;
 import ar.edu.itba.pod.mapper.LongestTripMapper;
 import ar.edu.itba.pod.reducer.LongestTripReducerFactory;
 
-public class Query2Client extends Client<Long> {
+public class Query2Client extends Client<Pair<Long, LongestTripDataRaw>> {
 
     private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -24,21 +25,16 @@ public class Query2Client extends Client<Long> {
     }
 
     @Override
-    public Long getTripKey(TripsRow trip) {
-        return trip.getPickupLocationID();
-    }
-
-    @Override
-    public TripsRow parseTripsRow(String[] fields) {
-        return new TripsRow(
-                fields[0],
-                LocalDateTime.parse(fields[1], DTF),
-                LocalDateTime.parse(fields[2], DTF),
-                LocalDateTime.parse(fields[3], DTF),
-                Long.valueOf(fields[4]),
+    public Pair<Long, LongestTripDataRaw> getTripKey(String[] fields) {
+        return new Pair<>(
+            Long.valueOf(fields[4]),
+            new LongestTripDataRaw(
                 Long.valueOf(fields[5]),
+                Long.valueOf(fields[6]),
+                LocalDateTime.parse(fields[1], DTF),
                 Double.valueOf(fields[6]),
-                Double.valueOf(fields[7])
+                fields[0]
+            )
         );
     }
 

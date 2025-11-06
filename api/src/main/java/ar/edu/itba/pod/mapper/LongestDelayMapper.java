@@ -7,10 +7,10 @@ import com.hazelcast.mapreduce.Context;
 import com.hazelcast.mapreduce.Mapper;
 
 import ar.edu.itba.pod.data.Pair;
-import ar.edu.itba.pod.data.TripsRow;
+import ar.edu.itba.pod.data.TripDelayRaw;
 import ar.edu.itba.pod.data.ZonesRow;
 
-public class LongestDelayMapper implements Mapper<Long, TripsRow, String, Pair<String, Double>>, HazelcastInstanceAware {
+public class LongestDelayMapper implements Mapper<Long, TripDelayRaw, String, Pair<String, Long>>, HazelcastInstanceAware {
     private transient IMap<Long, ZonesRow> zonesMap;
 
     private final String borough;  
@@ -20,15 +20,12 @@ public class LongestDelayMapper implements Mapper<Long, TripsRow, String, Pair<S
     }
 
     @Override
-    public void map(Long key, TripsRow row, Context<String, Pair<String, Double>> context) {
+    public void map(Long key, TripDelayRaw row, Context<String, Pair<String, Long>> context) {
         ZonesRow pickupZone = zonesMap.get(key);
-        ZonesRow dropoffZone = zonesMap.get(row.getDropoffLocationID());
+        ZonesRow dropoffZone = zonesMap.get(row.getDropoffLocationId());
         if(pickupZone != null && dropoffZone != null && pickupZone.getNeighbourhood().equals(borough)){
-            long delay = java.time.Duration.between(
-                row.getRequestDateTime(),  
-                row.getPickupDateTime()    
-            ).getSeconds();
-            context.emit(pickupZone.getZone(), new Pair<>(dropoffZone.getZone(), Double.valueOf(delay)));
+            long delay = row.getDelay();
+            context.emit(pickupZone.getZone(), new Pair<>(dropoffZone.getZone(), delay));
         }  
     }
 

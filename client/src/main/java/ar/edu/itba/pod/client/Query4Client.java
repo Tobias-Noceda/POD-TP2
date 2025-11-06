@@ -1,6 +1,7 @@
 package ar.edu.itba.pod.client;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -11,11 +12,13 @@ import com.hazelcast.mapreduce.JobCompletableFuture;
 import ar.edu.itba.pod.client.lib.ParametersParser;
 import ar.edu.itba.pod.client.lib.ParsedParameters;
 import ar.edu.itba.pod.collator.LongestDelayCollator;
+import ar.edu.itba.pod.data.LongestTripDataRaw;
+import ar.edu.itba.pod.data.TripDelayRaw;
 import ar.edu.itba.pod.data.TripsRow;
 import ar.edu.itba.pod.mapper.LongestDelayMapper;
 import ar.edu.itba.pod.reducer.LongestDelayReducerFactory;
 
-public class Query4Client extends Client<Long> {
+public class Query4Client extends Client<TripDelayRaw> {
 
     private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -24,22 +27,8 @@ public class Query4Client extends Client<Long> {
     }
 
     @Override
-    public Long getTripKey(TripsRow trip) {
-        return trip.getPickupLocationID();
-    }
-
-    @Override
-    public TripsRow parseTripsRow(String[] fields) {
-        return new TripsRow(
-                fields[0],
-                LocalDateTime.parse(fields[1], DTF),
-                LocalDateTime.parse(fields[2], DTF),
-                LocalDateTime.parse(fields[3], DTF),
-                Long.valueOf(fields[4]),
-                Long.valueOf(fields[5]),
-                Double.valueOf(fields[6]),
-                Double.valueOf(fields[7])
-        );
+    public TripDelayRaw getTripKey(String[] fields) {
+        return new TripDelayRaw(Long.valueOf(fields[4]), Long.valueOf(fields[5]), Duration.between(LocalDateTime.parse(fields[1]), LocalDateTime.parse(fields[2])).getSeconds());
     }
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
