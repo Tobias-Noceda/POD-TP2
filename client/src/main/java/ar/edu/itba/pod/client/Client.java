@@ -50,6 +50,8 @@ public abstract class Client<K> {
 
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final DateTimeFormatter loggerDtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
 
     private final ParsedParameters args;
     private final DateTimeFormatter dtf;
@@ -91,13 +93,13 @@ public abstract class Client<K> {
         zonesMap.clear();
         tripsMultiMap.clear();
 
-        logWriter.println("%s INFO [main] %s - Inicio de la lectura del archivo".formatted(dtf.format(LocalDateTime.now()), this.getClass().getSimpleName()));
+        logWriter.println("%s INFO [main] %s - Inicio de la lectura del archivo".formatted(loggerDtf.format(LocalDateTime.now()), this.getClass().getSimpleName()));
 
         // Open folder inPath and load zonesFileName and tripsFileName
         loadZones(Paths.get(args.inPath, ZONES_FILE_NAME), zonesMap);
         loadTripsThreaded(Paths.get(args.inPath, TRIPS_FILE_NAME), tripsMultiMap);
 
-        logWriter.println("%s INFO [main] %s - Fin de lectura del archivo".formatted(dtf.format(LocalDateTime.now()), this.getClass().getSimpleName()));
+        logWriter.println("%s INFO [main] %s - Fin de lectura del archivo".formatted(loggerDtf.format(LocalDateTime.now()), this.getClass().getSimpleName()));
     }
 
     public void executeJob(
@@ -112,7 +114,7 @@ public abstract class Client<K> {
                 )
             )
         ) {
-            logWriter.println("%s INFO [main] %s - Inicio del trabajo map/reduce".formatted(dtf.format(LocalDateTime.now()), this.getClass().getSimpleName()));
+            logWriter.println("%s INFO [main] %s - Inicio del trabajo map/reduce".formatted(loggerDtf.format(LocalDateTime.now()), this.getClass().getSimpleName()));
             
             // MapReduce job
             List<String> queryResults = queryJob.get();
@@ -123,7 +125,7 @@ public abstract class Client<K> {
                 queryWriter.println(result);
             }
 
-            logWriter.println("%s INFO [main] %s - Fin del trabajo map/reduce".formatted(dtf.format(LocalDateTime.now()), this.getClass().getSimpleName()));
+            logWriter.println("%s INFO [main] %s - Fin del trabajo map/reduce".formatted(loggerDtf.format(LocalDateTime.now()), this.getClass().getSimpleName()));
         } catch (IOException e) {
             logger.error("Error writing query results", e);
 

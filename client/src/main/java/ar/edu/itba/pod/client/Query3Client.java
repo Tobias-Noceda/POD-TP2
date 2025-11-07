@@ -17,6 +17,7 @@ import ar.edu.itba.pod.data.TripFareData;
 import ar.edu.itba.pod.data.TripsRow;
 import ar.edu.itba.pod.mapper.AverageFareMapper;
 import ar.edu.itba.pod.reducer.AverageFareReducerFactory;
+import ar.edu.itba.pod.reducer.AverageFareReducerFactoryNoCombiner;
 
 public class Query3Client extends Client<TripFareData> {
 
