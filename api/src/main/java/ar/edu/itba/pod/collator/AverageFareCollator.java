@@ -17,7 +17,7 @@ public class AverageFareCollator implements Collator<Map.Entry<Pair<String, Stri
     @Override
     public List<String> collate(Iterable<Map.Entry<Pair<String, String>, Double>> values) {
 
-        DecimalFormat df = new DecimalFormat("#.##");
+        DecimalFormat df = new DecimalFormat("0.00");
         df.setRoundingMode(RoundingMode.DOWN);
 
         return StreamSupport.stream(values.spliterator(), false)
