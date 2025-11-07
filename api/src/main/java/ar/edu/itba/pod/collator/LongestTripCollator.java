@@ -19,7 +19,7 @@ public class LongestTripCollator implements Collator<Map.Entry<String, LongestTr
     public List<String> collate(Iterable<Map.Entry<String, LongestTripData>> values) {
 
         DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-        DecimalFormat df = new DecimalFormat("#.##");
+        DecimalFormat df = new DecimalFormat("0.00");
         df.setRoundingMode(RoundingMode.DOWN);
 
         return StreamSupport.stream(values.spliterator(), false)
