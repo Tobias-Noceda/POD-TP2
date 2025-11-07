@@ -12,7 +12,6 @@ import com.hazelcast.mapreduce.JobCompletableFuture;
 import ar.edu.itba.pod.client.lib.ParametersParser;
 import ar.edu.itba.pod.client.lib.ParsedParameters;
 import ar.edu.itba.pod.collator.CompanyYTDCollator;
-import ar.edu.itba.pod.combiner.CompanyYTDCombinerFactory;
 import ar.edu.itba.pod.data.Pair;
 import ar.edu.itba.pod.data.TripsRow;
 import ar.edu.itba.pod.data.YTDDataRaw;
@@ -48,7 +47,6 @@ public class Query5Client extends Client<YTDDataRaw> {
 
         JobCompletableFuture<List<String>> job = client.getTripsJob()
                 .mapper(new CompanyYTDMapper())
-                // .combiner(new CompanyYTDCombinerFactory())
                 .reducer(new CompanyYTDReducerFactory())
                 .submit(new CompanyYTDCollator());
 

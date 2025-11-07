@@ -21,7 +21,7 @@ public class LongestDelayMapper implements Mapper<Long, TripDelayRaw, String, Pa
 
     @Override
     public void map(Long key, TripDelayRaw row, Context<String, Pair<String, Long>> context) {
-        ZonesRow pickupZone = zonesMap.get(key);
+        ZonesRow pickupZone = zonesMap.get(row.getPickupLocationId());
         ZonesRow dropoffZone = zonesMap.get(row.getDropoffLocationId());
         if(pickupZone != null && dropoffZone != null && pickupZone.getNeighbourhood().equals(borough)){
             long delay = row.getDelay();

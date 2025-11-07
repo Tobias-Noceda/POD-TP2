@@ -10,7 +10,6 @@ import com.hazelcast.mapreduce.JobCompletableFuture;
 import ar.edu.itba.pod.client.lib.ParametersParser;
 import ar.edu.itba.pod.client.lib.ParsedParameters;
 import ar.edu.itba.pod.collator.TripsCountCollator;
-import ar.edu.itba.pod.combiner.TripsCountCombinerFactory;
 import ar.edu.itba.pod.data.Pair;
 import ar.edu.itba.pod.mapper.TripsCountMapper;
 import ar.edu.itba.pod.reducer.TripsCountReducerFactory;
@@ -38,7 +37,6 @@ public class Query1Client extends Client<Pair<Long, Long>> {
 
     JobCompletableFuture<List<String>> job = client.getTripsJob()
         .mapper(new TripsCountMapper())
-        .combiner(new TripsCountCombinerFactory())
         .reducer(new TripsCountReducerFactory())
         .submit(new TripsCountCollator());
 
