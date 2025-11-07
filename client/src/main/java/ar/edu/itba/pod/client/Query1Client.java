@@ -42,7 +42,7 @@ public class Query1Client extends Client<Pair<Long, Long>> {
         .reducer(new TripsCountReducerFactory())
         .submit(new TripsCountCollator());
 
-        client.executeJob(job, "pickUpZone;dropOffZone;tripsCount");
+        client.executeJob(job, "pickUpZone;dropOffZone;trips");
 
         client.end();
     }
